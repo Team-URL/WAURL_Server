@@ -5,6 +5,7 @@ import com.example.waurl_server.entity.Report;
 import com.example.waurl_server.repository.NotSureRepository;
 import com.example.waurl_server.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -70,5 +71,17 @@ public class NotSureController {
             reportRepository.deleteById(id);
             return notSureUrl;
         }
+    }
+
+    @GetMapping("chart")
+    public List<NotSure> showNotSureChart(){
+        List<NotSure> notSureChart = notSureRepository.findAllByOrderByReportCountDesc(Sort.by(Sort.Order.asc("reportCount")));
+
+        int limit = 10;
+        if (notSureChart.size() > limit) {
+            notSureChart = notSureChart.subList(0, limit);
+        }
+
+        return notSureChart;
     }
 }
