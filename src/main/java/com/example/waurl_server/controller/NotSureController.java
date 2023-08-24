@@ -1,7 +1,9 @@
 package com.example.waurl_server.controller;
 
 import com.example.waurl_server.entity.NotSure;
+import com.example.waurl_server.entity.Report;
 import com.example.waurl_server.repository.NotSureRepository;
+import com.example.waurl_server.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NotSureController {
     private final NotSureRepository notSureRepository;
-
+    private final ReportRepository reportRepository;
     @GetMapping("list")
     public List<NotSure> findAll() {
         return (List<NotSure>) notSureRepository.findAll();
@@ -42,6 +44,30 @@ public class NotSureController {
             NotSure notSureUrl = findUrl.get();
             notSureUrl.setReportCount(notSureUrl.getReportCount() + 1);
             notSureRepository.save(notSureUrl);
+            return notSureUrl;
+        }
+    }
+
+    @PostMapping("accept")
+    public NotSure acceptReport(@RequestParam("reportId") Long id) {
+        Optional<Report> report = reportRepository.findById(id);
+        String url = report.get().getUrl();
+        Optional<NotSure> findUrl = notSureRepository.findByUrl(url);
+
+        if (findUrl.isEmpty()) {
+            NotSure notSureUrl = NotSure.builder()
+                    .url(url)
+                    .reportCount(1)
+                    .build();
+
+            notSureRepository.save(notSureUrl);
+            reportRepository.deleteById(id);
+            return notSureUrl;
+        } else {
+            NotSure notSureUrl = findUrl.get();
+            notSureUrl.setReportCount(notSureUrl.getReportCount() + 1);
+            notSureRepository.save(notSureUrl);
+            reportRepository.deleteById(id);
             return notSureUrl;
         }
     }
